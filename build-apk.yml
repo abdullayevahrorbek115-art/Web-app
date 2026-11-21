@@ -1,0 +1,50 @@
+name: APK yig'ish
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "Bot manzili (masalan https://mening-botim.onrender.com)"
+        required: true
+      app_name:
+        description: "Ilova nomi"
+        required: true
+        default: "Donat Shop"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Sozlamani yozish
+        env:
+          APP_URL: ${{ github.event.inputs.app_url }}
+          APP_NAME: ${{ github.event.inputs.app_name }}
+        run: node scripts/make-config.js
+      - name: Paketlarni o'rnatish
+        run: npm install
+      - name: Android loyihasini yaratish
+        run: npx cap add android
+      - name: Ikonka va ekran
+        run: |
+          cp -r res/* android/app/src/main/res/
+          find android/app/src/main/res -name 'splash.png' -delete
+          mkdir -p android/app/src/main/res/drawable
+          cp res/drawable/splash.xml android/app/src/main/res/drawable/splash.xml
+      - name: APK yig'ish
+        working-directory: android-app/android
+        run: ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: donat-shop-apk
+          path: android-app/android/app/build/outputs/apk/debug/app-debug.apk
