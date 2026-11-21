@@ -11,7 +11,7 @@ const account = require("./account");
 const orders = require("./orders");
 const payments = require("./payments");
 
-const APP_DIR = path.join(__dirname, "app");
+const APP_DIR = __dirname;
 const SESSION_MS = 60 * 24 * 60 * 60 * 1000; // 60 kun
 const CODE_MS = 5 * 60 * 1000;
 const MAX_SESSIONS_PER_USER = 5;
@@ -214,11 +214,13 @@ function serveStatic(rawPath, req, res) {
     return res.end("Bad request");
   }
   if (!rel || rel.endsWith("/")) rel += "index.html";
-  const file = path.normalize(path.join(APP_DIR, rel));
-  if (rel.includes("\0") || !file.startsWith(APP_DIR + path.sep)) {
+  // Papkasiz tuzilma: /app/icons/x.png -> app__icons__x.png (loyiha ildizida)
+  const flat = "app__" + rel.split("/").join("__");
+  if (!/^[A-Za-z0-9._-]+$/.test(flat) || flat.includes("..")) {
     res.writeHead(404);
     return res.end("Not found");
   }
+  const file = path.join(APP_DIR, flat);
   fs.stat(file, (err, st) => {
     if (err || !st.isFile()) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });

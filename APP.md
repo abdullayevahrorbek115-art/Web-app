@@ -12,7 +12,7 @@ Telefonda 2 xil usulda foydalanish mumkin.
 
 ## 2-usul: APK fayl (GitHub o'zi yig'adi)
 
-1. Loyihani GitHub'ga yuklang (`android-app` papkasi va `.github` papkasi bilan birga).
+1. Hamma fayllarni GitHub'ga yuklang (papkalar yo'q, hammasi bitta qatorda). `build-apk.yml` faylini bosib, qalam (✏️) → fayl nomini `.github/workflows/build-apk.yml` ga o'zgartiring → Commit.
 2. GitHub'da repo → **Actions** → **APK yig'ish** → **Run workflow**.
 3. `app_url` ga bot manzilini yozing: `https://SIZNING-BOT.onrender.com` (oxirida `/` siz).
 4. 5–10 daqiqadan keyin tugagach, ish ichidagi **donat-shop-apk** faylini yuklab oling (zip ichida `app-debug.apk`).
