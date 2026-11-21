@@ -1,0 +1,62 @@
+name: APK yig'ish
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "Bot manzili (masalan https://mening-botim.onrender.com)"
+        required: true
+      app_name:
+        description: "Ilova nomi"
+        required: true
+        default: "Donat Shop"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Papkalarni tiklash
+        run: |
+          mkdir -p android-app/scripts android-app/www android-app/res
+          cp android__package.json android-app/package.json
+          cp android__make-config.js android-app/scripts/make-config.js
+          cp android__index.html android-app/www/index.html
+          for f in res__*; do
+            t="android-app/res/$(echo "${f#res__}" | sed 's#__#/#g')"
+            mkdir -p "$(dirname "$t")"
+            cp "$f" "$t"
+          done
+      - name: Sozlamani yozish
+        working-directory: android-app
+        env:
+          APP_URL: ${{ github.event.inputs.app_url }}
+          APP_NAME: ${{ github.event.inputs.app_name }}
+        run: node scripts/make-config.js
+      - name: Paketlarni o'rnatish
+        working-directory: android-app
+        run: npm install
+      - name: Android loyihasini yaratish
+        working-directory: android-app
+        run: npx cap add android
+      - name: Ikonka va ekran
+        working-directory: android-app
+        run: |
+          cp -r res/* android/app/src/main/res/
+          find android/app/src/main/res -name 'splash.png' -delete
+          mkdir -p android/app/src/main/res/drawable
+          cp res/drawable/splash.xml android/app/src/main/res/drawable/splash.xml
+      - name: APK yig'ish
+        working-directory: android-app/android
+        run: ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: donat-shop-apk
+          path: android-app/android/app/build/outputs/apk/debug/app-debug.apk
